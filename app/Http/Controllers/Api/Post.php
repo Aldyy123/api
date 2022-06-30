@@ -15,7 +15,9 @@ class Post extends Controller
      */
     public function index()
     {
-        $post = DB::table('t_post')->get();
+        $post = DB::table('t_post')->take(2)->
+        orderBy('datepost', 'desc')->orderBy('timepost', 'desc')
+        ->get();
         return $post;
     }
 
