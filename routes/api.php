@@ -41,6 +41,6 @@ Route::controller(Siswa::class)->group(function () {
 });
 Route::controller(DUController::class)->group(function () {
     Route::post('/students/{nisn}/transaction/du/{study_year}', 'paid_du_transaction');
-    Route::put('/students/{nisn}/transaction/du/{study_yer}/{id_du}', 'update_du_transaction');
+    Route::put('/students/{nisn}/transaction/du/{study_year}/{id_du}', 'update_du_transaction');
     Route::delete('/students/{nisn}/transaction/du/{study_year}/{id_du}', 'delete_du_transaction');
 });
