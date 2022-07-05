@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Laravel\Sanctum\HasApiTokens;
 
 class SiswaModel extends Model
 {
-    use HasFactory;
+    use HasFactory, HasApiTokens;
     protected $table = 'siswa';
     protected $primaryKey = 'nisn';
 

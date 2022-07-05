@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DUController;
 use App\Http\Controllers\Api\Post;
 use App\Http\Controllers\Api\Siswa;
 use App\Http\Controllers\Api\SPPController;
 use App\Http\Controllers\Api\StudyYear;
+use App\Http\Middleware\TokenOrAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -44,3 +46,5 @@ Route::controller(DUController::class)->group(function () {
     Route::put('/students/{nisn}/transaction/du/{study_year}/{id_du}', 'update_du_transaction');
     Route::delete('/students/{nisn}/transaction/du/{study_year}/{id_du}', 'delete_du_transaction');
 });
+
+Route::post('/auth-student', [AuthController::class, 'auth']);

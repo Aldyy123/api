@@ -45,7 +45,7 @@ class Siswa extends Controller
         if ($siswa) {
             if (isset($params_query['paid_off'])) {
                 return response()->json([
-                    'du_Transaction' => $siswa->du_transaction->where('paid_off', $params_query['paid_off']),
+                    'spp_Transaction' => $siswa->spp_transaction->where('paid_off', $params_query['paid_off']),
                     'code' => Response::HTTP_OK,
                     'error' => false,
                     'message' => 'Success full get spp transaction'
@@ -53,14 +53,14 @@ class Siswa extends Controller
                 return;
             } else if (isset($params_query['year'])) {
                 return response()->json([
-                    'du_transaction' =>  $siswa[0]->du_transaction->where('study_year_id', $params_query['year']),
+                    'spp_transaction' =>  $siswa[0]->spp_transaction->where('study_year_id', $params_query['year']),
                     'code' => Response::HTTP_OK,
                     'error' => false,
                     'message' => 'Success full get spp transaction'
                 ]);
             }
             return response()->json([
-                'du_transaction' => $siswa->du_transaction
+                'spp_transaction' => $siswa->spp_transaction
             ]);
         }
         return response()->json([
@@ -155,6 +155,7 @@ class Siswa extends Controller
         ], Response::HTTP_NOT_FOUND);
     }
 
+   
 
 
     /**
