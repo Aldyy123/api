@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\SiswaModel;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Http;
-use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {

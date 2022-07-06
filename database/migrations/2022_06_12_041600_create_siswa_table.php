@@ -14,14 +14,18 @@ class CreateSiswaTable extends Migration
     public function up()
     {
         Schema::create('siswa', function (Blueprint $table) {
-            $table->integer('nisn')->primary();
+            $table->bigInteger('nisn')->primary();
             $table->date('date_birth');
-            $table->string('parent_name', 50);
-            $table->integer('start_year');
+            // $table->string('parent_name', 50);
+            $table->integer('start_year')->nullable();
             $table->string('name_student', 50);
             $table->integer('end_year')->nullable();
             $table->char('study_year_id')->index();
             $table->foreign('study_year_id')->references('study_year')->on('study_year')->onUpdate('cascade');
+            $table->char('kelas');
+            $table->integer('nipd');
+            $table->string('place_born');
+
             $table->timestamps();
 
         });

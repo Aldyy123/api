@@ -19,7 +19,7 @@ class DuTransaction extends Migration
             $table->char('study_year_id', 10)->index();
             $table->foreign('study_year_id')->references('study_year')->on('study_year')->onUpdate('cascade');
 
-            $table->integer('nisn_siswa')->index();
+            $table->bigInteger('nisn_siswa')->index();
             $table->foreign('nisn_siswa')->references('nisn')->on('siswa')->onUpdate('cascade');
 
             $table->integer('price');

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\FamilyModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -36,6 +37,10 @@ class SiswaModel extends Model
     }
     public function du_transaction(){
         return $this->hasMany(DUModel::class, 'nisn_siswa', 'nisn');
+    }
+
+    public function family(){
+        return $this->hasOne(FamilyModel::class, 'nisn_siswa', 'nisn');
     }
 
     public function validation_input_siswa($request)
