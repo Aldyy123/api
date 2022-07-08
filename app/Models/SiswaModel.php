@@ -39,6 +39,8 @@ class SiswaModel extends Model
         return $this->hasMany(DUModel::class, 'nisn_siswa', 'nisn');
     }
 
+    
+
     public function family(){
         return $this->hasOne(FamilyModel::class, 'nisn_siswa', 'nisn');
     }

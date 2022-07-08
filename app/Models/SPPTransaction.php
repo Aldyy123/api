@@ -8,7 +8,6 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Mockery\Undefined;
 
 class SPPTransaction extends Model
 {
@@ -36,6 +35,18 @@ class SPPTransaction extends Model
         return $this->belongsTo(StudyYear::class, 'study_year_id', 'study_year');
     }
 
+    public static function check_month_paided($month, $study_year){
+        $spp = self::where('month', $month)
+        ->where('study_year_id', $study_year)
+        ->where('paid_off', 1)
+        ->first();
+        if($spp){
+            return true;
+        }
+
+        return false;
+    }
+
     public function filter_paid_off($params_query, $transactions)
     {
         if ($params_query['paid_off'] == 1) {
@@ -52,6 +63,7 @@ class SPPTransaction extends Model
             return [];
         }
     }
+
 
     public function create_or_update_spp($data, $update = false)
     {
@@ -72,8 +84,8 @@ class SPPTransaction extends Model
     }
 
     public static function request_data_collection($data, $id, $study_year){
-        $year = explode('-', $study_year);
-        $year = implode('/', $year);
+        $year = StudyYear::separate_study_year($study_year);
+
         $data['nisn_siswa'] = $id;
         $data['study_year_id'] = $year;
         $data['remain_payment'] = $data['paid_user'] - $data['price'];
@@ -117,11 +129,11 @@ class SPPTransaction extends Model
         }
     }
 
+    
+
     public static function check_study_year($study_year_name)
     {
-        $year = explode('-', $study_year_name);
-        $year = implode('/', $year);
-
+       $year = StudyYear::separate_study_year($study_year_name);
         $study_year = DB::table('study_year')->where('year', '=', $year)->get();
         if (count($study_year)) {
             return true;

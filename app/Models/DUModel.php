@@ -25,6 +25,16 @@ class DUModel extends Model
         return $this->belongsTo(SiswaModel::class, 'nisn_siswa', 'nisn');
     }
 
+    public static function check_study_year_paid_off($study_year){
+        $du = self::where('study_year_id', $study_year)
+        ->where('paid_off', 1)->first();
+
+        if($du){
+            return true;
+        }
+        return false;
+    }
+
     public function validation_input_du($request){
         $messages = [
             'required' => 'the :attribute field is required',

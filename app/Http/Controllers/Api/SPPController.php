@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\SiswaModel;
 use App\Models\SPPTransaction;
+use App\Models\StudyYear;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -28,8 +29,19 @@ class SPPController extends Controller
         if ($userExist) {
             $errors = $this->model->validation_input_spp($request);
             if (count($errors) == 0) {
-                $data = SPPTransaction::request_data_collection($request->all(), $nisn, $study_year);
-                return $this->model->transaction_spp($data, $errors);
+                $data = $request->all();
+                $year_slash = StudyYear::separate_study_year($study_year);
+                $check_paid_off_month = SPPTransaction::check_month_paided($data['month'], $year_slash);
+
+                if (!$check_paid_off_month) {
+                    $data = SPPTransaction::request_data_collection($data, $nisn, $study_year);
+                    return $this->model->transaction_spp($data, $errors);
+                }
+
+                return response()->json([
+                    'message' => 'Sorry, this month is paid off spp',
+                    'code' => Response::HTTP_BAD_REQUEST,
+                ], Response::HTTP_BAD_REQUEST);
             }
         }
         return response()->json([
@@ -51,15 +63,26 @@ class SPPController extends Controller
                     if (count($validation) > 0) {
                         return response()->json($validation, Response::HTTP_BAD_REQUEST);
                     }
-                    $transaction = SPPTransaction::find($id_spp);
-                    $data = SPPTransaction::request_data_collection($request->all(), $nisn, $year_name);
-                    $transaction->update($data);
+
+                    $input = $request->all();
+                    $year_slash = StudyYear::separate_study_year($year_name);
+                    $check_paid_off_month = SPPTransaction::check_month_paided($input['month'], $year_slash);
+
+                    if (!$check_paid_off_month) {
+                        $transaction = SPPTransaction::find($id_spp);
+                        $data = SPPTransaction::request_data_collection($request->all(), $nisn, $year_name);
+                        $transaction->update($data);
+                        return response()->json([
+                            'transaction' => $transaction,
+                            'error' => false,
+                            'code' => 200,
+                            'message' => 'Data has been updated'
+                        ]);
+                    }
                     return response()->json([
-                        'transaction' => $transaction,
-                        'error' => false,
-                        'code' => 200,
-                        'message' => 'Data has been updated'
-                    ]);
+                        'message' => 'Sorry, this month is paid off spp',
+                        'code' => Response::HTTP_BAD_REQUEST,
+                    ], Response::HTTP_BAD_REQUEST);
                 }
                 return response()->json([
                     'message' => 'Spp not found',

@@ -8,6 +8,7 @@ use App\Models\SiswaModel;
 use App\Models\SPPTransaction;
 use App\Models\StudyYear;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class Siswa extends Controller
 {
@@ -20,11 +21,36 @@ class Siswa extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $data = SiswaModel::all();
+        $query = $request->query();
+        $data = DB::table('siswa');
+
+        if (isset($query['limit']) && isset($query['page'])) {
+            $data->skip($query['page'] * $query['limit'])->take($query['limit']);
+        }
+
+        if (isset($query['kelas'])) {
+            $data->where('kelas', 'LIKE', "%{$query['kelas']}%");
+        }
+        if (isset($query['nisn'])) {
+            $data->where('nisn', 'LIKE', "%{$query['nisn']}%");
+        }
+
+        if (isset($query['nipd'])) {
+            $data->where('nipd', 'LIKE', "%{$query['nipd']}%");
+        }
+
+        if (isset($query['name'])) {
+            $data->where('name_student', 'LIKE', "%{$query['name']}%");
+        }
+
+        if (isset($query['birth'])) {
+            $data->whereYear('date_birth', $query['birth']);
+        }
+
         return response()->json([
-            'siswa' => $data
+            'siswa' => $data->orderBy('kelas')->get()
         ]);
     }
 
@@ -155,7 +181,7 @@ class Siswa extends Controller
         ], Response::HTTP_NOT_FOUND);
     }
 
-   
+
 
 
     /**
@@ -194,6 +220,39 @@ class Siswa extends Controller
             'code' => Response::HTTP_NOT_FOUND,
             'message' => 'User not found'
         ], Response::HTTP_NOT_FOUND);
+    }
+
+    /**
+     * Update the students classs.
+     *
+     * !! Update class not yet fixed, I'm still looking for the solution
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+
+    public function update_students_class_year(Request $request)
+    {
+        $query = $request->query();
+        if (isset($query)) {
+            $students = DB::table('siswa')->where('kelas',"LIKE", "%{$query['kelas']}%")->get();
+            $kelas = [];
+            $students->update([
+                'kelas' => 8
+            ])->exec();
+            foreach ($students as $key => $value) {
+                # code...
+                $separate_code_class = explode('.', $value->kelas);
+                array_push($kelas, $separate_code_class[1]);
+            }
+            return $students;
+        }
+
+        return response()->json([
+            'message' => 'Value class not found',
+            'error' => true,
+            'code' => Response::HTTP_BAD_REQUEST
+        ], Response::HTTP_BAD_REQUEST);
     }
 
     /**

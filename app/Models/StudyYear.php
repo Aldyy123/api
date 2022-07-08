@@ -31,6 +31,13 @@ class StudyYear extends Model
         return self::message_validation($validator);
     }
 
+    public static function separate_study_year($study_year){
+        $year = explode('-', $study_year);
+        $year = implode('/', $year);
+
+        return $year;
+    }
+
     public static function message_validation($validator){
         if ($validator->fails()) {
             return [

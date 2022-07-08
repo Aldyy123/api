@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DUModel;
 use App\Models\SiswaModel;
 use App\Models\SPPTransaction as ModelsSPPTransaction;
+use App\Models\StudyYear;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use SppTransaction;
@@ -13,7 +14,8 @@ use SppTransaction;
 class DUController extends Controller
 {
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->model = new DUModel();
     }
 
@@ -48,13 +50,25 @@ class DUController extends Controller
         //
     }
 
-    public function paid_du_transaction(Request $request, $nisn, $study_year){
+    public function paid_du_transaction(Request $request, $nisn, $study_year)
+    {
         $userExist = SiswaModel::check_user($nisn);
         if ($userExist) {
             $errors = $this->model->validation_input_du($request);
             if (count($errors) == 0) {
-                $data = ModelsSPPTransaction::request_data_collection($request->all(), $nisn, $study_year);
-                return $this->model->transaction_du($data, $errors);
+
+                $year_slash = StudyYear::separate_study_year($study_year);
+                $check_paid_off_month = DUModel::check_study_year_paid_off($year_slash);
+
+                if (!$check_paid_off_month) {
+                    $data = ModelsSPPTransaction::request_data_collection($request->all(), $nisn, $study_year);
+                    return $this->model->transaction_du($data, $errors);
+                }
+
+                return response()->json([
+                    'message' => 'Sorry, this year is paid off DU',
+                    'code' => Response::HTTP_BAD_REQUEST,
+                ], Response::HTTP_BAD_REQUEST);
             }
             return $errors;
         }
@@ -76,15 +90,26 @@ class DUController extends Controller
                     if (count($validation) > 0) {
                         return response()->json($validation, Response::HTTP_BAD_REQUEST);
                     }
-                    $transaction = DUModel::find($id_du);
-                    $data = ModelsSPPTransaction::request_data_collection($request->all(), $nisn, $year_name);
-                    $transaction->update($data);
+
+                    $year_slash = StudyYear::separate_study_year($year_name);
+                    $check_paid_off_month = DUModel::check_study_year_paid_off($year_slash);
+
+                    if (!$check_paid_off_month) {
+                        $transaction = DUModel::find($id_du);
+                        $data = ModelsSPPTransaction::request_data_collection($request->all(), $nisn, $year_name);
+                        $transaction->update($data);
+                        return response()->json([
+                            'transaction' => $transaction,
+                            'error' => false,
+                            'code' => 200,
+                            'message' => 'Data has been updated'
+                        ]);
+                    }
+
                     return response()->json([
-                        'transaction' => $transaction,
-                        'error' => false,
-                        'code' => 200,
-                        'message' => 'Data has been updated'
-                    ]);
+                        'message' => 'Sorry, this year is paid off du',
+                        'code' => Response::HTTP_BAD_REQUEST,
+                    ], Response::HTTP_BAD_REQUEST);
                 }
                 return response()->json([
                     'message' => 'DU not found',

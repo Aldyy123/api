@@ -40,6 +40,7 @@ Route::controller(SPPController::class)->group(function () {
 Route::controller(Siswa::class)->group(function () {
     Route::get('/students/{nisn}/transaction/spp', 'check_spp_transaction');
     Route::get('/students/{nisn}/transaction/du', 'check_du_transaction');
+    Route::put('/students/update/kelas', 'update_students_class_year');
 });
 Route::controller(DUController::class)->group(function () {
     Route::post('/students/{nisn}/transaction/du/{study_year}', 'paid_du_transaction');
