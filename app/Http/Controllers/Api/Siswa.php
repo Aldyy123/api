@@ -86,7 +86,7 @@ class Siswa extends Controller
                 ]);
             }
             return response()->json([
-                'spp_transaction' => $siswa->spp_transaction
+                'spp_transaction' => $siswa->spp_transaction->sortByDesc('updated_at')
             ]);
         }
         return response()->json([
@@ -120,7 +120,7 @@ class Siswa extends Controller
                 ]);
             }
             return response()->json([
-                'du_transaction' => $siswa->du_transaction
+                'du_transaction' => $siswa->du_transaction->sortByDesc('updated_at')
             ]);
         }
         return response()->json([

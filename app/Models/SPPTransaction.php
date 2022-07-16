@@ -110,9 +110,15 @@ class SPPTransaction extends Model
         } catch (QueryException $th) {
             if ($th->getCode() === '23000') {
                 return response()->json([
-                    'code' => 500,
+                    'code' => Response::HTTP_INTERNAL_SERVER_ERROR,
                     'message' => 'Error query year is a wrong',
-                    'error' => false
+                    'error' => true
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }elseif($th->getCode() === '01000'){
+                return response()->json([
+                    'code' => Response::HTTP_INTERNAL_SERVER_ERROR,
+                    'message' => 'Error bulan yang kamu masukan tidak ada',
+                    'error' => true
                 ], Response::HTTP_INTERNAL_SERVER_ERROR);
             }
             return response()->json($errors, Response::HTTP_BAD_REQUEST);

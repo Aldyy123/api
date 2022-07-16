@@ -20,22 +20,30 @@ class AuthController extends Controller
         $input = $request->all();
 
         $user = SiswaModel::find($input['nisn']);
-        if ($user && $user['nisn'] == $input['nisn'] && strtolower($user['parent_name']) === strtolower($input['parent_name'])) {
+        if ($user) {
+            $family = $user->family;
+            if ($family && $user['nisn'] == $input['nisn'] && strtolower($family['mother']) === strtolower($input['parent_name'])) {
 
+                return response()->json([
+                    'user' => $user,
+                    'status' => 'success',
+                    'error' => false,
+                    'code' => Response::HTTP_OK,
+                    'message' => 'User be match'
+                ]);
+            }
             return response()->json([
-                'user' => $user,
-                'status' => 'success',
-                'error' => false,
-                'code' => Response::HTTP_OK,
-                'message' => 'User be match'
-            ]);
+                'status' => 'fail',
+                'error' => true,
+                'code' => Response::HTTP_NOT_FOUND,
+                'message' => 'Nama ibu tidak ditemukan'
+            ], Response::HTTP_NOT_FOUND);
         }
-
         return response()->json([
             'status' => 'fail',
             'error' => true,
             'code' => Response::HTTP_NOT_FOUND,
-            'message' => 'user not found'
+            'message' => 'Nisn tidak ditemukan'
         ], Response::HTTP_NOT_FOUND);
     }
 }

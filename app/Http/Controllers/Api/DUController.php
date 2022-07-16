@@ -58,7 +58,7 @@ class DUController extends Controller
             if (count($errors) == 0) {
 
                 $year_slash = StudyYear::separate_study_year($study_year);
-                $check_paid_off_month = DUModel::check_study_year_paid_off($year_slash);
+                $check_paid_off_month = DUModel::check_study_year_paid_off($year_slash, $nisn);
 
                 if (!$check_paid_off_month) {
                     $data = ModelsSPPTransaction::request_data_collection($request->all(), $nisn, $study_year);
@@ -92,7 +92,7 @@ class DUController extends Controller
                     }
 
                     $year_slash = StudyYear::separate_study_year($year_name);
-                    $check_paid_off_month = DUModel::check_study_year_paid_off($year_slash);
+                    $check_paid_off_month = DUModel::check_study_year_paid_off($year_slash, $nisn);
 
                     if (!$check_paid_off_month) {
                         $transaction = DUModel::find($id_du);
