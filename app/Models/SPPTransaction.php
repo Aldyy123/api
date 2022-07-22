@@ -35,9 +35,10 @@ class SPPTransaction extends Model
         return $this->belongsTo(StudyYear::class, 'study_year_id', 'study_year');
     }
 
-    public static function check_month_paided($month, $study_year){
+    public static function check_month_paided($nisn, $month, $study_year){
         $spp = self::where('month', $month)
         ->where('study_year_id', $study_year)
+        ->where('nisn_siswa', $nisn)
         ->where('paid_off', 1)
         ->first();
         if($spp){
@@ -46,42 +47,8 @@ class SPPTransaction extends Model
 
         return false;
     }
+    
 
-    public function filter_paid_off($params_query, $transactions)
-    {
-        if ($params_query['paid_off'] == 1) {
-            $passed = $transactions->filter(function ($value, $key) {
-                return data_get($value, 'paid_off') == 1;
-            });
-            return $passed;
-        } elseif ($params_query['paid_off'] == 0) {
-            $passed = $transactions->filter(function ($value, $key) {
-                return data_get($value, 'paid_off') == 0;
-            });
-            return $passed;
-        } else {
-            return [];
-        }
-    }
-
-
-    public function create_or_update_spp($data, $update = false)
-    {
-        if($update){
-            return response()->json([
-                'spp_transaction' => self::create($data),
-                'code' => 200,
-                'message' => 'Transaction has been success for created',
-                'error' => false
-            ]);
-        }
-        return response()->json([
-            'spp_transaction' => self::create($data),
-            'code' => 200,
-            'message' => 'Transaction has been success for created',
-            'error' => false
-        ]);
-    }
 
     public static function request_data_collection($data, $id, $study_year){
         $year = StudyYear::separate_study_year($study_year);
@@ -102,7 +69,7 @@ class SPPTransaction extends Model
     {
         try {
             return response()->json([
-                'spp_transaction' => self::create($data),
+                'data' => self::create($data),
                 'code' => 200,
                 'message' => 'Transaction has been success for created',
                 'error' => false
@@ -111,7 +78,7 @@ class SPPTransaction extends Model
             if ($th->getCode() === '23000') {
                 return response()->json([
                     'code' => Response::HTTP_INTERNAL_SERVER_ERROR,
-                    'message' => 'Error query year is a wrong',
+                    'message' => 'Maaf, input tahun ajaran tidak ada',
                     'error' => true
                 ], Response::HTTP_INTERNAL_SERVER_ERROR);
             }elseif($th->getCode() === '01000'){

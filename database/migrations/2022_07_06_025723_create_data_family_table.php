@@ -18,14 +18,14 @@ class CreateDataFamilyTable extends Migration
             $table->string('address', 100)->nullable();
             $table->string('kelurahan', 50)->nullable();
             $table->string('kecamatan', 50)->nullable();
-            $table->string('rt', 5);
-            $table->string('rw', 5);
+            $table->char('rt', 5)->nullable();
+            $table->char('rw', 5)->nullable();
             $table->char('phone')->nullable();
             $table->string('father', 30);
             $table->string('mother', 30);
             $table->string('dusun', 30)->nullable();
 
-            $table->bigInteger('nisn_siswa')->index();
+            $table->bigInteger('nisn_siswa')->index()->unique();
             $table->foreign('nisn_siswa')->references('nisn')->on('siswa')->onDelete('cascade')->onUpdate('cascade');
             
             $table->timestamps();

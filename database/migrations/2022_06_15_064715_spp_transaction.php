@@ -17,7 +17,7 @@ class SppTransaction extends Migration
             $table->id();
 
             $table->char('study_year_id', 10)->index();
-            $table->foreign('study_year_id')->references('study_year')->on('study_year')->onUpdate('cascade');
+            $table->foreign('study_year_id')->references('study_year')->on('study_year');
     
             $table->bigInteger('nisn_siswa')->index();
             $table->foreign('nisn_siswa')->references('nisn')->on('siswa')->onUpdate('cascade')->onDelete('cascade');
@@ -25,7 +25,7 @@ class SppTransaction extends Migration
             $table->enum('month', ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']);
             $table->integer('price');
             $table->boolean('paid_off')->default(0);
-            $table->integer('remain_payment');
+            $table->integer('remain_payment')->default(0);
             $table->integer('paid_user');
             $table->timestamps();
         });

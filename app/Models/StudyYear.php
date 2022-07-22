@@ -53,7 +53,7 @@ class StudyYear extends Model
         ];
     }
 
-    public static function request_filter_year($request){
+    public static function request_year($request){
         $data = $request->all();
         $data['study_year'] = $data['year'];
         return $data;

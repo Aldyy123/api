@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\SiswaModel;
-use App\Models\SPPTransaction;
-use App\Models\StudyYear;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
@@ -24,33 +22,44 @@ class Siswa extends Controller
     public function index(Request $request)
     {
         $query = $request->query();
-        $data = DB::table('siswa');
+        $data = null;
 
-        if (isset($query['limit']) && isset($query['page'])) {
-            $data->skip($query['page'] * $query['limit'])->take($query['limit']);
+        if (isset($query['sortby'])) {
+            $data = SiswaModel::orderBy('kelas', $query['sortby']);
+        } else {
+            $data = SiswaModel::orderBy('kelas');
         }
+
+        $count = $data->get()->count();
 
         if (isset($query['kelas'])) {
-            $data->where('kelas', 'LIKE', "%{$query['kelas']}%");
+            $data = $data->where('kelas', 'LIKE', "%{$query['kelas']}%");
         }
         if (isset($query['nisn'])) {
-            $data->where('nisn', 'LIKE', "%{$query['nisn']}%");
+            $data = $data->where('nisn', 'LIKE', "%{$query['nisn']}%");
         }
 
         if (isset($query['nipd'])) {
-            $data->where('nipd', 'LIKE', "%{$query['nipd']}%");
+            $data = $data->where('nipd', 'LIKE', "%{$query['nipd']}%");
         }
 
         if (isset($query['name'])) {
-            $data->where('name_student', 'LIKE', "%{$query['name']}%");
+            $data = $data->where('name_student', 'LIKE', "%{$query['name']}%");
         }
 
         if (isset($query['birth'])) {
-            $data->whereYear('date_birth', $query['birth']);
+            $data = $data->whereYear('date_birth', $query['birth']);
         }
 
+        if (isset($query['limit']) && isset($query['page'])) {
+            $query['page'] = $query['page'] <= 1 ? $query['page'] = 0 : $query['page'];
+            $data = $data->skip($query['page'] * $query['limit'])->take($query['limit']);
+        }
+
+
         return response()->json([
-            'siswa' => $data->orderBy('kelas')->get()
+            'data' => $data->get(),
+            'count' => $count
         ]);
     }
 
@@ -71,22 +80,27 @@ class Siswa extends Controller
         if ($siswa) {
             if (isset($params_query['paid_off'])) {
                 return response()->json([
-                    'spp_Transaction' => $siswa->spp_transaction->where('paid_off', $params_query['paid_off']),
+                    'data' => $siswa->spp_transaction->where('paid_off', $params_query['paid_off']),
+                    'count' => $siswa->spp_transaction->where('paid_off', $params_query['paid_off'])->count(),
                     'code' => Response::HTTP_OK,
                     'error' => false,
                     'message' => 'Success full get spp transaction'
                 ]);
-                return;
             } else if (isset($params_query['year'])) {
                 return response()->json([
-                    'spp_transaction' =>  $siswa[0]->spp_transaction->where('study_year_id', $params_query['year']),
+                    'data' =>  $siswa[0]->spp_transaction->where('study_year_id', $params_query['year']),
+                    'count' =>  $siswa[0]->spp_transaction->where('study_year_id', $params_query['year'])->count(),
                     'code' => Response::HTTP_OK,
                     'error' => false,
                     'message' => 'Success full get spp transaction'
                 ]);
             }
             return response()->json([
-                'spp_transaction' => $siswa->spp_transaction->sortByDesc('updated_at')
+                'data' => $siswa->spp_transaction->sortByDesc('updated_at'),
+                'count' => $siswa->spp_transaction->sortByDesc('updated_at')->count(),
+                'code' => Response::HTTP_OK,
+                'error' => false,
+                'message' => 'Success full get spp transaction'
             ]);
         }
         return response()->json([
@@ -102,10 +116,12 @@ class Siswa extends Controller
     {
         $params_query = $request->query();
         $siswa = SiswaModel::find($nisn);
+
         if ($siswa) {
             if (isset($params_query['paid_off'])) {
                 return response()->json([
-                    'du_transaction' => $siswa->du_transaction->where('paid_off', $params_query['paid_off']),
+                    'data' => $siswa->du_transaction->where('paid_off', $params_query['paid_off']),
+                    'count' => $siswa->du_transaction->where('paid_off', $params_query['paid_off'])->count(),
                     'code' => Response::HTTP_OK,
                     'error' => false,
                     'message' => 'Success full get du transaction'
@@ -113,18 +129,23 @@ class Siswa extends Controller
                 return;
             } else if (isset($params_query['year'])) {
                 return response()->json([
-                    'du_transaction' =>  $siswa[0]->du_transaction->where('study_year_id', $params_query['year']),
+                    'data' =>  $siswa[0]->du_transaction->where('study_year_id', $params_query['year']),
+                    'count' =>  $siswa[0]->du_transaction->where('study_year_id', $params_query['year'])->count(),
                     'code' => Response::HTTP_OK,
                     'error' => false,
                     'message' => 'Success full get du transaction'
                 ]);
             }
             return response()->json([
-                'du_transaction' => $siswa->du_transaction->sortByDesc('updated_at')
+                'data' => $siswa->du_transaction->sortByDesc('updated_at'),
+                'count' => $siswa->du_transaction->sortByDesc('updated_at')->count(),
+                'code' => Response::HTTP_OK,
+                'error' => false,
+                'message' => 'Success full get du transaction'
             ]);
         }
         return response()->json([
-            'siswa' => $siswa,
+            'data' => $siswa,
             'code' => 404,
             'error' => true,
             'message' => 'User not found'
@@ -139,19 +160,29 @@ class Siswa extends Controller
      */
     public function store(Request $request)
     {
-        $validation = $this->student->validation_input_siswa($request);
-        if ($validation['error']) {
+        try {
+            $validation = $this->student->validation_input_siswa($request);
+            if ($validation['error']) {
+                return response()->json([
+                    $validation
+                ], Response::HTTP_NOT_ACCEPTABLE);
+            }
+            $regis = SiswaModel::create($request->all());
             return response()->json([
-                $validation
-            ], Response::HTTP_NOT_ACCEPTABLE);
+                'data' => $regis,
+                'code' => 200,
+                'error' => false,
+                'message' => 'User has been created'
+            ]);
+        } catch (\Throwable $th) {
+            throw $th;
+            return response()->json([
+                'data' => $regis,
+                'code' => 200,
+                'error' => false,
+                'message' => $th->getMessage()
+            ]);
         }
-        $regis = SiswaModel::create($request->all());
-        return response()->json([
-            'user' => $regis,
-            'code' => 200,
-            'error' => false,
-            'message' => 'User has been created'
-        ]);
     }
 
     /**
@@ -160,13 +191,13 @@ class Siswa extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($nisn)
     {
-        $userIsExist = SiswaModel::check_user($id);
-        $student = SiswaModel::find($id);
+        $userIsExist = SiswaModel::check_user($nisn);
+        $student = SiswaModel::find($nisn);
         if ($userIsExist) {
             return response()->json([
-                'siswa' => $student,
+                'data' => $student,
                 'code' => 200,
                 'error' => false,
                 'message' => 'User is successfull'
@@ -174,7 +205,7 @@ class Siswa extends Controller
         }
 
         return response()->json([
-            'siswa' => $student,
+            'data' => $student,
             'code' => 404,
             'error' => true,
             'message' => 'User not found'
@@ -203,19 +234,27 @@ class Siswa extends Controller
      */
     public function update(Request $request, $id)
     {
+
+        $validate = $this->student->validation_edit_siswa($request);
+        if ($validate['error']) {
+            return response()->json([
+                $validate
+            ], Response::HTTP_NOT_ACCEPTABLE);
+        }
+
         $userIsExist = SiswaModel::check_user($id);
         $student = SiswaModel::find($id);
         if ($userIsExist) {
             $student->update($request->all());
             return response()->json([
-                'siswa' => $student,
+                'data' => $student,
                 'error' => false,
                 'code' => 200,
                 'message' => 'Data has been updated'
             ]);
         }
         return response()->json([
-            'siswa' => $student,
+            'data' => $student,
             'error' => true,
             'code' => Response::HTTP_NOT_FOUND,
             'message' => 'User not found'
@@ -235,7 +274,7 @@ class Siswa extends Controller
     {
         $query = $request->query();
         if (isset($query)) {
-            $students = DB::table('siswa')->where('kelas',"LIKE", "%{$query['kelas']}%")->get();
+            $students = DB::table('siswa')->where('kelas', "LIKE", "%{$query['kelas']}%")->get();
             $kelas = [];
             $students->update([
                 'kelas' => 8
@@ -261,22 +300,30 @@ class Siswa extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($nisn)
     {
-        if (SiswaModel::check_user($id)) {
-            $siswa = SiswaModel::find($id);
-            $siswa->delete();
-            return response()->json([
-                'message' => 'Data has been deleted',
-                'error' => false,
-                'code' => Response::HTTP_OK
-            ]);
-        }
+        try {
+            if (SiswaModel::check_user($nisn)) {
+                $siswa = SiswaModel::find($nisn);
+                $siswa->delete();
+                return response()->json([
+                    'message' => 'Data has been deleted',
+                    'error' => false,
+                    'code' => Response::HTTP_OK
+                ]);
+            }
 
-        return response()->json([
-            'message' => 'User not found',
-            'error' => true,
-            'code' => Response::HTTP_NOT_FOUND
-        ], Response::HTTP_NOT_FOUND);
+            return response()->json([
+                'message' => 'User not found',
+                'error' => true,
+                'code' => Response::HTTP_NOT_FOUND
+            ], Response::HTTP_NOT_FOUND);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => $th->getMessage(),
+                'error' => true,
+                'code' => Response::HTTP_INTERNAL_SERVER_ERROR
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }

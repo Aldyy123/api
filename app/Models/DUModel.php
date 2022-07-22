@@ -60,7 +60,7 @@ class DUModel extends Model
     {
         try {
             return response()->json([
-                'du_transaction' => self::create($data),
+                'data' => self::create($data),
                 'code' => 200,
                 'message' => 'Transaction has been success for created',
                 'error' => false
@@ -69,8 +69,8 @@ class DUModel extends Model
             if ($th->getCode() === '23000') {
                 return response()->json([
                     'code' => 500,
-                    'message' => 'Error query year is a wrong',
-                    'error' => false
+                    'message' => 'Maaf tahun ajaran tidak ada',
+                    'error' => true
                 ], Response::HTTP_INTERNAL_SERVER_ERROR);
             }
             return response()->json($errors, Response::HTTP_BAD_REQUEST);

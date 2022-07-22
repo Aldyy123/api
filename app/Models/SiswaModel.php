@@ -19,29 +19,32 @@ class SiswaModel extends Model
     protected $fillable = [
         'nisn',
         'date_birth',
-        'parent_name',
         'start_year',
         'name_student',
         'end_year',
-        'study_year_id'
+        'study_year_id',
+        'kelas',
+        'nipd',
+        'place_born',
     ];
 
     public function spp_transaction()
     {
         return $this->hasMany(SPPTransaction::class, 'nisn_siswa', 'nisn');
     }
-    
+
     public function study_year()
     {
         return $this->belongsTo(StudyYear::class, 'study_year_id', 'study_year');
     }
-    public function du_transaction(){
+    public function du_transaction()
+    {
         return $this->hasMany(DUModel::class, 'nisn_siswa', 'nisn');
     }
 
-    
 
-    public function family(){
+    public function family()
+    {
         return $this->hasOne(FamilyModel::class, 'nisn_siswa', 'nisn');
     }
 
@@ -56,16 +59,19 @@ class SiswaModel extends Model
         $validator = Validator::make($request->all(), [
             'nisn' => 'required|min:1|unique:siswa',
             'date_birth' => 'required',
-            'parent_name' => 'required',
+            'nipd' => 'required',
             'start_year' => 'required|max:10',
             'name_student' => 'required',
-            'study_year_id' => 'required'
+            'study_year_id' => 'required',
+            'kelas' => 'required',
+            'place_born' => 'required',
         ], $messages);
-        
+
         return $this->message_validation($validator);
     }
 
-    public function validation_edit_siswa($request){
+    public function validation_edit_siswa($request)
+    {
         $messages = [
             'required' => 'the :attribute field is required',
             'max' => 'the :attribute fields is :max',
@@ -73,18 +79,21 @@ class SiswaModel extends Model
             'unique' => 'the :attribute mush fields is unique'
         ];
         $validator = Validator::make($request->all(), [
-            'nisn' => 'present|min:1|unique:siswa',
+            'nisn' => 'required|min:1|unique:siswa',
             'date_birth' => 'present',
-            'parent_name' => 'present',
+            'nipd' => 'present',
             'start_year' => 'present|max:10',
             'name_student' => 'present',
-            'study_year_id' => 'present'
+            'study_year_id' => 'present',
+            'kelas' => 'present',
+            'place_born' => 'present',
         ], $messages);
-        
+
         return $this->message_validation($validator);
     }
 
-    public function message_validation($validator){
+    public function message_validation($validator)
+    {
         if ($validator->fails()) {
             return [
                 'message' => $validator->errors(),
@@ -102,7 +111,7 @@ class SiswaModel extends Model
     public static function check_user($nisn)
     {
         $user = DB::table('siswa')->where('nisn', '=', $nisn)->get();
-        if (count($user)) {
+        if (count($user) > 0) {
             return true;
         } else {
             return false;

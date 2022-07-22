@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DUController;
+use App\Http\Controllers\Api\Family;
 use App\Http\Controllers\Api\Post;
 use App\Http\Controllers\Api\Siswa;
 use App\Http\Controllers\Api\SPPController;
@@ -28,13 +29,17 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::apiResources([
     'posts' => Post::class,
     'students' => Siswa::class,
-    'study-year' => StudyYear::class
+    'study-year' => StudyYear::class,
+    'spp' => SPPController::class,
+    'family' => Family::class,
+    'daftar-ulang' => DUController::class
 ]);
 
 Route::controller(SPPController::class)->group(function () {
     Route::post('/students/{nisn}/transaction/spp/{study_year}', 'paid_spp_transaction');
     Route::put('/students/{nisn}/transaction/spp/{study_year}/{id_spp}', 'update_spp_transaction');
     Route::delete('/students/{nisn}/transaction/spp/{study_year}/{id_spp}', 'delete_spp_transaction');
+    Route::get('/count/spp', 'count_spp');
 });
 
 Route::controller(Siswa::class)->group(function () {
@@ -46,6 +51,9 @@ Route::controller(DUController::class)->group(function () {
     Route::post('/students/{nisn}/transaction/du/{study_year}', 'paid_du_transaction');
     Route::put('/students/{nisn}/transaction/du/{study_year}/{id_du}', 'update_du_transaction');
     Route::delete('/students/{nisn}/transaction/du/{study_year}/{id_du}', 'delete_du_transaction');
+    Route::get('/count/du', 'count_du');
 });
 
 Route::post('/auth-student', [AuthController::class, 'auth']);
+Route::post('/auth-admin', [AuthController::class, 'authAdmin']);
+Route::post('/register-admin', [AuthController::class, 'register_admin']);

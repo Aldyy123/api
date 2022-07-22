@@ -14,13 +14,35 @@ class StudyYear extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $view = ModelsStudyYear::all();
+
+        $query = $request->query();
+        $data = null;
+        
+        if (isset($query['sortby'])) {
+            $data = ModelsStudyYear::orderBy('study_year', $query['sortby']);
+        }else{
+            $data = ModelsStudyYear::orderBy('study_year');
+        }
+        
+        $count = $data->get()->count();
+
+        
+        if (isset($query['limit']) && isset($query['page'])) {
+            $query['page'] = $query['page'] <= 1 ? $query['page'] = 0 : $query['page'];
+            $data = $data->skip($query['page'] * $query['limit'])->take($query['limit']);
+        }
+
+        if (isset($query['active'])) {
+            $data = $data->where('active', 'LIKE', "%{$query['active']}%");
+        }
+
         return response()->json([
-            'study_year' => $view,
+            'data' => $data->get(),
             'error' => false,
             'code' => Response::HTTP_OK,
+            'count' => $count,
             'message' => 'Successfull to retrive data'
         ]);
     }
@@ -62,10 +84,10 @@ class StudyYear extends Controller
         }
 
         if ($range_validation) {
-            $studyYear = ModelsStudyYear::request_filter_year($request);
+            $studyYear = ModelsStudyYear::request_year($request);
             ModelsStudyYear::create($studyYear);
             return response()->json([
-                'study_year' => $studyYear,
+                'data' => $studyYear,
                 'code' => Response::HTTP_CREATED,
                 'error' => false,
                 'message' => 'Study year has been created'
@@ -120,13 +142,13 @@ class StudyYear extends Controller
                 return $validation;
             }
 
-            $year = ModelsStudyYear::range_study_year($request->all()['year'], '/');
-            if ($year) {
+            $range_study_year = ModelsStudyYear::range_study_year($request->all()['year'], '/');
+            if ($range_study_year) {
                 $study_year_model = ModelsStudyYear::find($slah_year);
-                $filter_study_year = ModelsStudyYear::request_filter_year($request);
+                $filter_study_year = ModelsStudyYear::request_year($request);
                 $study_year_model->update($filter_study_year);
                 return response()->json([
-                    'study_year' => $study_year_model,
+                    'data' => $study_year_model,
                     'message' => 'Study year successfull to update',
                     'code' => Response::HTTP_OK,
                     'error' => false
@@ -159,7 +181,7 @@ class StudyYear extends Controller
         if ($study) {
             $study->delete();
             return response()->json([
-                'study_year' => $study,
+                'data' => $study,
                 'code' => 200,
                 'error' => false,
                 'message' => 'Study year successfull to deleted'
