@@ -7,7 +7,7 @@ use App\Http\Controllers\Api\Post;
 use App\Http\Controllers\Api\Siswa;
 use App\Http\Controllers\Api\SPPController;
 use App\Http\Controllers\Api\StudyYear;
-use App\Http\Middleware\TokenOrAuth;
+use App\Http\Controllers\Api\UserAdmin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -32,7 +32,8 @@ Route::apiResources([
     'study-year' => StudyYear::class,
     'spp' => SPPController::class,
     'family' => Family::class,
-    'daftar-ulang' => DUController::class
+    'daftar-ulang' => DUController::class,
+    'user-admin' => UserAdmin::class
 ]);
 
 Route::controller(SPPController::class)->group(function () {
